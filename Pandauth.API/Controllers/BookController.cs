@@ -28,13 +28,16 @@ public class BookController(ApplicationDbContext context) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateBookRequest request)
     {
+        var username = User.Identity?.Name;
+
+        if (username is null) return Unauthorized("User is not authenticated");
 
         var newBook = context.Books.Add(new Book
         {
             Title = request.Title,
             Year = request.Year,
             AuthorName = request.AuthorName,
-            CreatedBy = ""
+            CreatedBy = username
         });
 
         await context.SaveChangesAsync();
@@ -44,6 +47,9 @@ public class BookController(ApplicationDbContext context) : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateBookRequest request)
     {
+        var username = User.Identity?.Name;
+
+        if (username is null) return Unauthorized("User is not authenticated");
         if (id != request.Id) return BadRequest("Request Body ID does not match route ID");
 
         var bookToUpdate = await context.Books.SingleOrDefaultAsync(b => b.Id == id);
